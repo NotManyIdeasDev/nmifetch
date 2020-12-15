@@ -68,7 +68,7 @@ struct TimeC {
     }
 };
 
-TimeC ConvertSeconds(long long& seconds) {
+TimeC ConvertSeconds(const long long& seconds) {
      return TimeC(seconds, seconds / 60, (seconds / 60) / 60);
 }
 
@@ -76,7 +76,8 @@ std::string GetUptime()
 {
     struct sysinfo s_info;
     sysinfo(&s_info);
-    struct TimeC m_time = ConvertSeconds(s_info.uptime);
+
+    TimeC m_time = ConvertSeconds(s_info.uptime);
     m_time.seconds -= m_time.minutes * 60;
     m_time.minutes -= m_time.hours * 60;
 
