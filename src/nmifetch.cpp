@@ -59,16 +59,16 @@ std::string GetKernelVersion(){
 }
 
 struct TimeC {
-    long seconds, minutes, hours;
+    long long seconds, minutes, hours;
 
-    TimeC(long s, long m, long h) 
+    TimeC(long long s, long long m, long long h) 
         : seconds(s), minutes(m), hours(h)
     {
 
     }
 };
 
-TimeC ConvertSeconds(long& seconds) {
+TimeC ConvertSeconds(long long& seconds) {
      return TimeC(seconds, seconds / 60, (seconds / 60) / 60);
 }
 
