@@ -129,6 +129,18 @@ std::string DetectBase(std::vector<T>& archBased, std::vector<T>& debianBased) {
     return "Distro not supported.";
 }
 
+std::string GetPacmanPackages() {
+    return GetOutputFromCommand("pacman -Q | wc -l") + "(pacman)";
+}
+
+std::string GetDpkgPackages() {
+    return GetOutputFromCommand("sudo dpkg-query -f '${binary:Package}\n' -W | wc -l") + "(dpkg)";
+}
+
+std::string GetCPUInfo() {
+    return GetOutputFromCommand(R"(lscpu | grep "Model name:" | sed -r 's/Model name:\s{1,}//g')");
+}
+
 int main() 
 {
     std::vector<std::string> archBased = 
@@ -183,9 +195,11 @@ int main()
     std::cout << GetMemoryUsage() << std::endl;
 
     if (DetectBase(archBased, debianBased) == "arch")
-        std::cout << "/* pacman packages */ "<< std::endl;
+        std::cout << GetPacmanPackages() << std::endl;
     else if (DetectBase(archBased, debianBased) == "debian")
-        std::cout << "/* dpkg packages */" << std::endl;
+        std::cout << GetDpkgPackages() << std::endl;
     else
         std::cout << "Error." << std::endl;
+
+    std::cout << GetCPUInfo() << std::endl;
 }
