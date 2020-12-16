@@ -7,6 +7,9 @@
 #include <iostream>
 #include <string>
 #include <sys/sysinfo.h>
+#include <vector>
+
+#define ll long long
 
 std::string GetOutputFromCommand(std::string cmd) {
     std::string data;
@@ -51,24 +54,28 @@ std::string GetHostname(){
 }
 
 std::string GetOS(){
-    return GetOutputFromCommand("hostnamectl | grep -oP '(?<=Operating System: ).*");
+    return GetOutputFromCommand("hostnamectl | grep -oP '(?<=Operating System: ).*'");
+}
+
+std::string GetArchitecture() {
+    return GetOutputFromCommand("hostnamectl | grep -oP '(?<=Architecture: ).*'");
 }
 
 std::string GetKernelVersion(){
-    return GetOutputFromCommand("hostnamectl | grep -oP '(?<=Kernel: ).*");
+    return GetOutputFromCommand("hostnamectl | grep -oP '(?<=Kernel: ).*'");
 }
 
 struct TimeC {
-    long long seconds, minutes, hours;
+    ll seconds, minutes, hours;
 
-    TimeC(long long s, long long m, long long h) 
+    TimeC(ll s, ll m, ll h) 
         : seconds(s), minutes(m), hours(h)
     {
 
     }
 };
 
-TimeC ConvertSeconds(const long long& seconds) {
+TimeC ConvertSeconds(const ll& seconds) {
      return TimeC(seconds, seconds / 60, (seconds / 60) / 60);
 }
 
@@ -86,6 +93,99 @@ std::string GetUptime()
     + std::to_string(m_time.seconds) + "s ";
 }
 
-int main() {
-    std::cout << GetUptime() << std::endl;
+std::string GetShell() {
+    return GetOutputFromCommand("echo $SHELL");
+}
+
+std::string GetMemoryUsage() {
+    ll totalmem = ExtractIntFromCommand("cat /proc/meminfo | grep MemTotal");
+    ll freemem = ExtractIntFromCommand("cat /proc/meminfo | grep MemFree");
+    ll buffers = ExtractIntFromCommand("cat /proc/meminfo | grep Buffers");
+    ll cached = ExtractIntFromCommand("cat /proc/meminfo | grep -w Cached");
+    ll sreclaimable = ExtractIntFromCommand("cat /proc/meminfo | grep SReclaimable");
+
+    ll memusage = totalmem - freemem - buffers - cached - sreclaimable;
+
+    ll finalusage = memusage / 1024;
+    ll finaltotal = totalmem / 1024;
+
+    return std::to_string(finalusage) + "MiB / " + std::to_string(finaltotal) + "MiB";
+}
+
+template<typename T>
+std::string DetectBase(std::vector<T>& archBased, std::vector<T>& debianBased) {
+    for (int i = 0; i < archBased.size(); i++) {
+        if (GetOS().find(archBased[i]) != std::string::npos) {
+            return "arch";
+        }
+    }
+
+    for (int j = 0; j < debianBased.size(); j++)  {
+        if (GetOS().find(debianBased[j]) != std::string::npos) {
+            return "debian";
+        }
+    }
+
+    return "Distro not supported.";
+}
+
+int main() 
+{
+    std::vector<std::string> archBased = 
+    {
+        "Anarchy",
+        "Arch",
+        "Arco",
+        "Artix",
+        "Endeavour",
+        "Hyperbola",
+        "KaOS",
+        "LinHES",
+        "Manjaro",
+        "Ninja",
+        "RaspArch",
+        "Snal",
+        "Talking",
+        "UBOS"
+    };
+
+    std::vector<std::string> debianBased = {
+        "MX",
+        "Mint",
+        "Pop!",
+        "Ubuntu",
+        "elementary",
+        "KDE",
+        "Zorin",
+        "deepin",
+        "Kali",
+        "Lite",
+        "Peppermint",
+        "Sparky",
+        "Lubuntu",
+        "Kubuntu",
+        "Xubuntu",
+        "Parrot",
+        "Endless",
+        "MATE",
+        "Pure",
+        "Raspbian",
+        "Raspberry Pi",   
+    };
+
+    std::cout << GetUsername() << std::endl;
+    std::cout << GetHostname() << std::endl;
+    std::cout << GetOS() << std::endl;
+    std::cout << GetArchitecture() << std::endl;
+    std::cout << GetKernelVersion() << std::endl;
+    std::cout << GetUptime() << "\n" << std::endl;
+    std::cout << GetShell() << std::endl;
+    std::cout << GetMemoryUsage() << std::endl;
+
+    if (DetectBase(archBased, debianBased) == "arch")
+        std::cout << "/* pacman packages */ "<< std::endl;
+    else if (DetectBase(archBased, debianBased) == "debian")
+        std::cout << "/* dpkg packages */" << std::endl;
+    else
+        std::cout << "Error." << std::endl;
 }
