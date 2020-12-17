@@ -8,6 +8,8 @@
 #include <string>
 #include <sys/sysinfo.h>
 #include <vector>
+#include <algorithm>
+#include "logo.h"
 
 #define ll long long
 
@@ -46,7 +48,9 @@ int ExtractIntFromCommand(std::string str) {
 
 std::string GetUsername()
 {
-    return GetOutputFromCommand("echo $USER");
+    std::string m_username = GetOutputFromCommand("echo $USER");
+    m_username.erase(std::remove(m_username.begin(), m_username.end(), '\n'), m_username.end());
+    return m_username;
 }
 
 std::string GetHostname(){
@@ -130,76 +134,91 @@ std::string DetectBase(std::vector<T>& archBased, std::vector<T>& debianBased) {
 }
 
 std::string GetPacmanPackages() {
-    return GetOutputFromCommand("pacman -Q | wc -l") + "(pacman)";
+    std::string m_packages = GetOutputFromCommand("pacman -Q | wc -l") + "(pacman)";
+    m_packages.erase(std::remove(m_packages.begin(), m_packages.end(), '\n'), m_packages.end());
+    return m_packages;
 }
 
 std::string GetDpkgPackages() {
-    return GetOutputFromCommand("sudo dpkg-query -f '${binary:Package}\n' -W | wc -l") + "(dpkg)";
+    std::string m_packages = GetOutputFromCommand("dpkg-query -f '${binary:Package}\n' -W | wc -l") + "(dpkg)";
+    m_packages.erase(std::remove(m_packages.begin(), m_packages.end(), '\n'), m_packages.end());
+    return m_packages;
 }
 
 std::string GetCPUInfo() {
     return GetOutputFromCommand(R"(lscpu | grep "Model name:" | sed -r 's/Model name:\s{1,}//g')");
 }
 
+
+static std::vector<std::string> archBased = 
+{
+    "Alpine",
+    "Anarchy",
+    "Arch",
+    "Arco",
+    "Artix",
+    "Endeavour",
+    "Hyperbola",
+    "KaOS",
+    "LinHES",
+    "Manjaro",
+    "Ninja",
+    "RaspArch",
+    "Snal",
+    "Talking",
+    "UBOS"
+};
+
+static std::vector<std::string> debianBased = 
+{
+    "MX",
+    "Mint",
+    "Pop",
+    "Ubuntu",
+    "elementary",
+    "KDE",
+    "Zorin",
+    "deepin",
+    "Kali",
+    "Lite",
+    "Peppermint",
+    "Sparky",
+    "Lubuntu",
+    "Kubuntu",
+    "Xubuntu",
+    "Parrot",
+    "Endless",
+    "MATE",
+    "Pure",
+    "Raspbian",
+    "Raspberry Pi"   
+};
+
+void PrintAll(std::string logo) {
+    std::istringstream f(logo);
+    std::string line;
+
+    std::vector<std::string> v;
+}
+
+
+
 int main() 
 {
-    std::vector<std::string> archBased = 
-    {
-        "Anarchy",
-        "Arch",
-        "Arco",
-        "Artix",
-        "Endeavour",
-        "Hyperbola",
-        "KaOS",
-        "LinHES",
-        "Manjaro",
-        "Ninja",
-        "RaspArch",
-        "Snal",
-        "Talking",
-        "UBOS"
-    };
-
-    std::vector<std::string> debianBased = {
-        "MX",
-        "Mint",
-        "Pop!",
-        "Ubuntu",
-        "elementary",
-        "KDE",
-        "Zorin",
-        "deepin",
-        "Kali",
-        "Lite",
-        "Peppermint",
-        "Sparky",
-        "Lubuntu",
-        "Kubuntu",
-        "Xubuntu",
-        "Parrot",
-        "Endless",
-        "MATE",
-        "Pure",
-        "Raspbian",
-        "Raspberry Pi",   
-    };
-
-    std::cout << GetUsername() << std::endl;
-    std::cout << GetHostname() << std::endl;
-    std::cout << GetOS() << std::endl;
-    std::cout << GetArchitecture() << std::endl;
-    std::cout << GetKernelVersion() << std::endl;
-    std::cout << GetUptime() << "\n" << std::endl;
-    std::cout << GetShell() << std::endl;
-    std::cout << GetMemoryUsage() << std::endl;
+    std::cout << GetUsername() << "@" << GetHostname() << std::endl;
+    std::cout << "os  : " << GetOS();
+    std::cout << "arch: " << GetArchitecture();
+    std::cout << "krnl: " << GetKernelVersion();
+    std::cout << "uptm: " << GetUptime() << std::endl;
+    std::cout << "shll: " << GetShell();
+    std::cout << "mem : " << GetMemoryUsage() << std::endl;
 
     if (DetectBase(archBased, debianBased) == "arch")
-        std::cout << GetPacmanPackages() << std::endl;
+        std::cout << "pkgs: " << GetPacmanPackages() << std::endl;
     else if (DetectBase(archBased, debianBased) == "debian")
-        std::cout << GetDpkgPackages() << std::endl;
-    else
-        std::cout << "Error." << std::endl;
+        std::cout << "pkgs: " << GetDpkgPackages() << std::endl;
+    else if (DetectBase(archBased, debianBased) == "Distro not supported.")
+        std::cout << "pkgs: something went wrong." << std::endl;
 
-    std::cout << GetCPUInfo() << std::endl;
+    std::cout << "cpu : " <<  GetCPUInfo() << std::endl;
 }
