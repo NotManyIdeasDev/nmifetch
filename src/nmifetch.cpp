@@ -10,6 +10,8 @@
 #include <vector>
 #include <algorithm>
 #include "logo.h"
+#include <iomanip>
+#include <sstream>
 
 #define ll long long
 
@@ -194,31 +196,44 @@ static std::vector<std::string> debianBased =
     "Raspberry Pi"   
 };
 
-void PrintAll(std::string logo) {
+void PrintAll(std::string logo) 
+{
     std::istringstream f(logo);
     std::string line;
 
     std::vector<std::string> v;
+
+    v.push_back("\n                   \033[1;36m  " + GetUsername() + "\e[0m@\033[1;36m" + GetHostname() + "\e[0m");
+    v.push_back("  \033[1;34mos\e[0m: " + GetOS());
+    v.push_back("  \033[1;34march\e[0m: " + GetArchitecture());
+    v.push_back("  \033[1;34mkrnl\e[0m: " + GetKernelVersion());
+    v.push_back("  \033[1;34muptm\e[0m: " + GetUptime() + "\n");
+    v.push_back("  \033[1;34mshll\e[0m: " + GetShell());
+    v.push_back("  \033[1;34mmem\e[0m: " + GetMemoryUsage() + "\n");
+    v.push_back("  \033[1;34mcpu\e[0m: " + GetCPUInfo());
+
+    if (DetectBase(archBased, debianBased) == "arch")
+        v.push_back("  \033[1;34mpkgs\e[0m: " + GetPacmanPackages() + "\n");
+    else if (DetectBase(archBased, debianBased) == "debian")
+        v.push_back("  \033[1;34mpkgs\e[0m: " + GetDpkgPackages() + "\n");
+    else if (DetectBase(archBased, debianBased) == "Distro not supported.")
+        v.push_back("  \033[1;34mpkgs\e[0m: something went wrong. \n");
+
+    int i = 0;
+
+    while(std::getline(f, line)) {
+        if (i != 0) {
+            if (i < v.size() + 1)
+                std::cout << "\033[1;34m" << line << "\e[0m" << std::right << v[i - 1];
+            else
+                std::cout << "\033[1;34m" << line << "\e[0m" << std::endl;
+        }
+        i++;
+    }
 }
-
-
 
 int main() 
 {
-    std::cout << GetUsername() << "@" << GetHostname() << std::endl;
-    std::cout << "os  : " << GetOS();
-    std::cout << "arch: " << GetArchitecture();
-    std::cout << "krnl: " << GetKernelVersion();
-    std::cout << "uptm: " << GetUptime() << std::endl;
-    std::cout << "shll: " << GetShell();
-    std::cout << "mem : " << GetMemoryUsage() << std::endl;
-
-    if (DetectBase(archBased, debianBased) == "arch")
-        std::cout << "pkgs: " << GetPacmanPackages() << std::endl;
-    else if (DetectBase(archBased, debianBased) == "debian")
-        std::cout << "pkgs: " << GetDpkgPackages() << std::endl;
-    else if (DetectBase(archBased, debianBased) == "Distro not supported.")
-        std::cout << "pkgs: something went wrong." << std::endl;
-
-    std::cout << "cpu : " <<  GetCPUInfo() << std::endl;
+    PrintAll(arch_logo);
+    std::cout << "\n";
 }
